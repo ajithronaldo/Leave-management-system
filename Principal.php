@@ -1,384 +1,432 @@
 <?php 
-    session_start();
-    $role = $_SESSION['sess_userrole'];
-    if(!isset($_SESSION['sess_username'])){
-      header('Location: index.php?err=2');
-    }
-    if($role!="Principal"){
-      header('Location: index.php?err=2');
-    }
+  session_start();
+  $id = isset($_SESSION['sess_user_id']);
+  $role = isset($_SESSION['sess_userrole']);
+  $name = isset($_SESSION['sess_username']);
+  if(!isset($_SESSION['sess_username'])){
+    header('Location: index.php?err=2');
+  }
+  if($_SESSION['sess_userrole'] != "Principal"){
+    header('Location: index.php?err=2');
+  }
+  include('api/way2sms-api.php');
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CSE-Hackathon</title>
+    <title>Leave Management System</title>
 
-    <!-- Bootstrap -->
+    <!-- For PDF Exports -->
+    <script src="js/jspdf.js"></script>
+    <script src="js/jquery-2.1.3.js"></script>
+    <script src="js/pdfFromHTML.js"></script>
+    
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" media="all">
+    <link href="css/userStyles.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/userStyles.css">
     <style>
-/* Style the tab */
-div.tab {
-    overflow: hidden;
-    border: 1px solid #ccc;
-    background-color: #f1f1f1;
-}
-
-/* Style the links inside the tab */
-div.tab a {
-    float: left;
-    display: block;
-    color: black;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-    transition: 0.3s;
-    font-size: 17px;
-}
-
-/* Change background color of links on hover */
-div.tab a:hover {
-    background-color: #ddd;
-}
-
-/* Create an active/current tablink class */
-div.tab a:focus, .active {
-    background-color: #ccc;
-}
-
-/* Style the tab content */
-.tabcontent {
-    display: none;
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-top: none;
-}
-</style>
+      .tablink {
+        width: 20%;
+      }
+    </style>
   </head>
   <body>
     
-    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation" style="background: #66A3FF; font-weight: bold; font-size: 16px;">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="sr-only">My Campus My Idea</span>
+            <span class="sr-only">Leave Management System</span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#"><I>CSE</I></a>
+          <a class="navbar-brand" href="#"><I>Leave Management System</I></a>
         </div>
 
         <div class="navbar-collapse collapse">
-          <ul class="nav navbar-nav navbar-right">
-            <li><a href="#"><?php echo $_SESSION['sess_username'];?></a></li>
-            <li><a href="logout.php">Logout</a></li>
+          <ul class="nav navbar-nav navbar-right" id ="notification">
+            
           </ul>
         </div>
       </div>
     </div>
-
-      <div class="container homepage">
-      <div class="tab">
-        <a href="javascript:void(0)" class="tablinks" onclick="openEvent(event, 'Student_Request')">Student Request</a>
-        <a href="javascript:void(0)" class="tablinks" onclick="openEvent(event, 'Staff_Request')">Staff Request</a>
-        <a href="javascript:void(0)" class="tablinks" onclick="openEvent(event, 'Hod_Request')">Hod Request</a>
-      </div>
-
-      <div id="Student_Request" class="tabcontent">
-        <h3>Student Requests</h3>
-        <?php
-require "database-config.php";
-
-$id = $_SESSION['sess_user_id'];
-
-echo $id;
-
-  $getstud = 'SELECT * FROM studentleave where Hod_Approval = "Approved" and Principal_Approval = "Pending" ORDER BY AppliedOn DESC';
-
-  $result = $dbh->query($getstud);
-
-if ($result->rowCount() > 0) {
-
-  /*$showleave = $dbh->prepare($getstud);
-
-  $showleave->execute(array(':dept' => $dept ));
-
-  if($showleave->rowCount() > 0){ */
-
-    print "<table border = 1 cellspacing = 5px cellpadding = 5% ; align = center>
-    <tr> <th> Student ID </th> <th> Student Name </th> <th> Student Dept </th>  <th> From Date </th> <th>To Date</th> <th> Reason</th> <th>Applied On</th> <th>Staff Approved </th> <th>HOD Approved </th> <th>Principal Approval </th> </tr>";
-
     
-    while($row = $result->fetch(PDO::FETCH_ASSOC)) {
-        print "<tr>";
-        print "<td> ". $row["StudentID"] . "</td>";
-        print "<td> ". $row["StudentName"]. "</td>";
-        print "<td> ". $row["StudentDept"]. "</td>";
-        print "<td> ". $row["FromDate"]. "</td>";
-        print "<td> ". $row["ToDate"]. "</td>";
-        print "<td> ". $row["Reason"]. "</td>";
-        print "<td> ". $row["AppliedOn"]. "</td>";
-        print "<td> ". $row["Mentor_Approval"]. "</td>";
-        print "<td> ". $row["Hod_Approval"]. "</td>";
-        print "<td> <form action='' method='POST'><input type='hidden' name='tempId' value='".$row["AppliedOn"]."'/>
-                    <input type='submit' name='btn-approve' value='Approve' />
-                    <input type='submit' name='btn-reject' value='Reject' />
-                    <form></td>";        
-        print "</tr>";
-      }
-      print "</table>";
-
-    }else{
-        print "No Record Found..!!!! ";
-  }
-
-   ?>
-<?php
-    require 'database-config.php';
-    if(isset($_POST["btn-approve"])){
-        extract($_POST);
-        $tempid = $_POST['tempId'];
-        $sql = "UPDATE studentleave SET   Principal_Approval ='Approved' WHERE AppliedOn = :temp";
-
-      $stmt = $dbh->prepare($sql);
-
-      $stmt->execute(array(':temp' => $tempid));
-    }
-
-
-   ?>
-
-   <?php
-    require 'database-config.php';
-    if(isset($_POST["btn-reject"])){
-        extract($_POST);
-        $tempid = $_POST['tempId'];
-        $sql = "UPDATE studentleave SET Principal_Approval='Rejected' WHERE AppliedOn = :temp";
-
-      $stmt = $dbh->prepare($sql);
-
-      $stmt->execute(array(':temp' => $tempid));
-
-    }
-
-   ?>
-
-      </div>
-
-<div id="Staff_Request" class="tabcontent">
-        <h3>Staff Requests</h3>
-        <?php
-require "database-config.php";
-
-$id = $_SESSION['sess_user_id'];
-
-echo $id;
-
-  $getstud = 'SELECT * FROM staffleave where Hod_Approval = "Approved" and Principal_Approval = "Pending" and Role !="HOD" ORDER BY AppliedOn DESC';
-
-  $showleave = $dbh->query($getstud);
-
-  if($showleave->rowCount() > 0){
-
-    print "<table border = 1 cellspacing = 5px cellpadding = 5% ; align = center>
-    <tr> <th> Student ID </th> <th> Student Name </th> <th> Student Dept </th>  <th> From Date </th> <th>To Date</th> <th> Reason</th> <th>Applied On</th> <th>leave Type </th> <th>Faculty Altered </th> <th>HOD Approved</th> <th>Principal Approval</th> </tr>";
-
+    <!-- Password Modal Starts -->
     
-    while($row = $showleave->fetch(PDO::FETCH_ASSOC)) {
-        print "<tr>";
-        print "<td> ". $row["StaffID"] . "</td>";
-        print "<td> ". $row["StaffName"]. "</td>";
-        print "<td> ". $row["StaffDept"]. "</td>";
-        print "<td> ". $row["FromDate"]. "</td>";
-        print "<td> ". $row["ToDate"]. "</td>";
-        print "<td> ". $row["Reason"]. "</td>";
-        print "<td> ". $row["AppliedOn"]. "</td>";
-        print "<td> ". $row["LeaveType"]. "</td>";
-        print "<td> ". $row["AlteredFaculty"]. "</td>";
-        print "<td> ". $row["Hod_Approval"]. "</td>";
-        print "<td> <form action='' method='POST'><input type='hidden' name='tempId' value='".$row["AppliedOn"]."'/>
-                    <input type='submit' name='btn-staff-approve' value='Approve' />
-                    <input type='submit' name='btn-staff-reject' value='Reject' />
-                    <form></td>";
-        print "</tr>";
-      }
-      print "</table>";
-    }else{
-        print "No Record Found..!!!! ";
-  }
-   ?>
-
-   <?php
-    require 'database-config.php';
-    if(isset($_POST["btn-staff-approve"])){
-        extract($_POST);
-        $tempid = $_POST['tempId'];
-        $sql = "UPDATE staffleave SET Principal_Approval='Approved' WHERE AppliedOn = :temp";
-
-      $stmt = $dbh->prepare($sql);
-
-      $stmt->execute(array(':temp' => $tempid));
-
-      $getstud = 'SELECT * FROM studentleave where AppliedOn = :temp';
-
-      $result = $dbh->prepare($getstud);
-      $result->execute(array(':temp' => $tempid));
-      $page_title='Leave Approved';
-//mail start
-$message1='<table width=100% border=0 border-color:none cellspacing=3 cellpadding=3 class=text style="font-family:Arial; line-height:160% word-spacing:0.4em font-size:18px; border: 1px solid" bgcolor="#CCCCCC" color:"#fffff">
-<tr ><td colspan="4"  align="center" bgcolor="#CCCCCC"><strong>'.$page_title.'</strong></td></tr>
-<tr><td>Roll No</td><td>:</td><td >'.$row["StudentID"].'</td></tr>
-<tr><td>Name</td><td>:</td><td>'.$row["StudentName"].'</td></tr>
-<tr><td>Department</td><td>:</td><td>'.$row["StudentDept"].'</td></tr>
-<tr><td>From Date</td><td>:</td><td>'.$row["FromDate"].'</td></tr>
-<tr><td>To</td><td>:</td><td>'.$row["To Date"].'</td></tr>
-<tr><td>Reason</td><td>:</td><td>'.$row["Reason"].'</td></tr>
-<tr><td>Status</td><td>:</td><td>'.$row["Principal_Approval"].'</td></tr>
-
-</table>';
-$email = 'principal@kgkite.ac.in';
-$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-$headers .= 'From: '.$email;
-Mail("ganesh.m635@outlook.com","$page_title","$message1","$headers");
-
-    }
-
-
-   ?>
-
-   <?php
-    require 'database-config.php';
-    if(isset($_POST["btn-staff-reject"])){
-        extract($_POST);
-        $tempid = $_POST['tempId'];
-        $sql = "UPDATE staffleave SET Principal_Approval='Rejected' WHERE AppliedOn = :temp";
-
-      $stmt = $dbh->prepare($sql);
-
-      $stmt->execute(array(':temp' => $tempid));
-
-    }
-
-   ?>
-
-      </div>
-
-      <div id="Hod_Request" class="tabcontent">
-        <h3>Hod Requests</h3>
-        <?php
-require "database-config.php";
-
-$id = $_SESSION['sess_user_id'];
-
-echo $id;
-
-  $getstud = 'SELECT * FROM staffleave where Principal_Approval = "Pending" and Role ="HOD" ORDER BY AppliedOn DESC';
-
-  $showleave = $dbh->query($getstud);
-
-  if($showleave->rowCount() > 0){
-
-    print "<table border = 1 cellspacing = 5px cellpadding = 5% ; align = center>
-    <tr> <th> Student ID </th> <th> Student Name </th> <th> Student Dept </th>  <th> From Date </th> <th>To Date</th> <th> Reason</th> <th>Applied On</th> <th>leave Type </th> <th>Faculty Altered </th> <th>Principal Approval</th> </tr>";
-
-    
-    while($row = $showleave->fetch(PDO::FETCH_ASSOC)) {
-        print "<tr>";
-        print "<td> ". $row["StaffID"] . "</td>";
-        print "<td> ". $row["StaffName"]. "</td>";
-        print "<td> ". $row["StaffDept"]. "</td>";
-        print "<td> ". $row["FromDate"]. "</td>";
-        print "<td> ". $row["ToDate"]. "</td>";
-        print "<td> ". $row["Reason"]. "</td>";
-        print "<td> ". $row["AppliedOn"]. "</td>";
-        print "<td> ". $row["LeaveType"]. "</td>";
-        print "<td> ". $row["AlteredFaculty"]. "</td>";
-        print "<td> <form action='' method='POST'><input type='hidden' name='tempId' value='".$row["AppliedOn"]."'/>
-                    <input type='submit' name='btn-hod-approve' value='Approve' />
-                    <input type='submit' name='btn-hod-reject' value='Reject' />
-                    <form></td>";
-        print "</tr>";
-      }
-      print "</table>";
-    }else{
-        print "No Record Found..!!!! ";
-  }
-   ?>
-
-   <?php
-    require 'database-config.php';
-    if(isset($_POST["btn-hod-approve"])){
-        extract($_POST);
-        $tempid = $_POST['tempId'];
-        $sql = "UPDATE staffleave SET Principal_Approval='Approved' WHERE AppliedOn = :temp";
-
-      $stmt = $dbh->prepare($sql);
-
-      $stmt->execute(array(':temp' => $tempid));
-    }
-
-
-   ?>
-
-   <?php
-    require 'database-config.php';
-    if(isset($_POST["btn-hod-reject"])){
-        extract($_POST);
-        $tempid = $_POST['tempId'];
-        $sql = "UPDATE staffleave SET Principal_Approval='Rejected' WHERE AppliedOn = :temp";
-
-      $stmt = $dbh->prepare($sql);
-
-      $stmt->execute(array(':temp' => $tempid));
-
-    }
-
-   ?>
-
-      </div>
+    <div class="modal fade" id="passwordModal" role="dialog">
+      <div class="modal-dialog">
       
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Change Password</h4>
+          </div>
+          <div class="modal-body">
+            <form action="">
+              <div class="form-group">
+                <label for="email">Password:</label>
+                <input type="password" class="form-control" id="pwd1">
+              </div>
+              <div class="form-group">
+                <label for="pwd">Conform Password:</label>
+                <input type="password" class="form-control" id="pwd2">
+              </div>
+              <button type="button" class="col-md-offset-4 col-md-4 btn btn-default" onclick="updatePassword()">Update</button>
+            </form>
+            <br><br>
+            <div class="alert alert-info">
+              <strong>Info!</strong> <div id = "passwordStatus"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  
+    <!-- Password Modal Ends -->
+
+
+    <!-- Main Block Starts -->
+
+    <div class="container-fluid">
+      <div class="tab">
+      <button class="tablink" onclick="openPage('student_leave', this)"  id="defaultOpen">Student Request</button>
+      <button class="tablink" onclick="openPage('staff_leave', this)">Staff Requests</button>
+      <button class="tablink" onclick="openPage('hod_leave', this)" >HOD Requests</button>
+      <button class="tablink" onclick="openPage('student_report', this)">Student Leave Report</button>
+      <button class="tablink" onclick="openPage('staff_report', this)">Staff Leave Report</button>
       </div>
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="js/bootstrap.min.js"></script>
+      <!-- Leave Request from Student Starts -->
+      <div id="student_leave" class="tabcontent">
+        <h3><center>Leave Request From Students</center></h3>
+        <div id = "stud_leave"></div>
+
+      </div>
+      <!-- Leave Request from Student Ends -->
+
+      <!-- Leave Request from Staff Starts -->
+      <div id="staff_leave" class="tabcontent">
+        <h3><center>Leave Requested From Staffs</center></h3>
+        <div id=staffleave></div>
+
+      </div>
+      <!-- Leave Request from Staff Ends -->
+
+      <!-- Leave Request from HOD Starts -->
+      <div id="hod_leave" class="tabcontent">
+        <center><h3>Leave Request from HOD</h3></center>
+        <div id="showHodleave"></div>
+      </div>
+      <!-- Leave Request from HOD Ends -->
+
+      <!-- Student Report Starts -->
+      <div id="student_report" class="tabcontent">
+        <center><h3>Get Student Leave Report</h3></center>
+        <div class="row">
+          <div class="col-md-6">
+            <center><h4>Report by Period</h4></center>
+            <form action="">
+              <div class="form-group">
+                <label for="from">From :</label>
+                <input type="date" class="form-control" id="fromDate">
+              </div>
+              <div class="form-group">
+                <label for="to">To:</label>
+                <input type="date" class="form-control" id="toDate">
+              </div>
+              <input type='hidden' id="staffId" name="staffId" value= <?php echo $_SESSION['sess_user_id']; ?> >
+              <center><button type="button" class="btn btn-default" onclick="showReportByDate()">Search</button></center>
+            </form>
+          </div>
+          <div class="col-md-6">
+            <center><h4>Report by Student</h4></center>
+            <form action="">
+              <div class="form-group">
+                <label for="Student Dept">Select Department:</label>
+                <select class="form-control" id="StudDept" onchange="showStudent(this.value)">
+                  <option value="">Select a Department</option>
+                  <option value="IT">B.E. IT</option>
+                  <option value="CSE">B.E. CSE</option>
+                  <option value="ECE">B.E. ECE</option>
+                </select>
+                <label for="Student Name">Select Student:</label>
+                <select class="form-control" id="StudName">
+                  
+                </select>
+              </div>
+              <center><button type="button" class="btn btn-default" onclick="showReportByName()">Search</button></center>
+            </form>  
+          </div>
+        </div>  
+        <br><center><button type="button" id="download" class="btn btn-default" onclick="studentReport()">Download Report</button></center><br>
+        <div class="container" id="studentReport"></div>
+      </div>
+      <!-- Student Report Ends -->
+
+      <!-- Staff Report Starts -->
+      <div id="staff_report" class="tabcontent">
+        <center><h3>Get Staff Leave Report</h3></center>
+        <div class="row">
+          <div class="col-md-6">
+            <center><h4>Report by Period</h4></center>
+            <form action="">
+              <div class="form-group">
+                <label for="from">From :</label>
+                <input type="date" class="form-control" id="staffFromDate">
+              </div>
+              <div class="form-group">
+                <label for="to">To:</label>
+                <input type="date" class="form-control" id="staffToDate">
+              </div>
+              <input type='hidden' id="staffId" name="staffId" value= <?php echo $_SESSION['sess_user_id']; ?> >
+              <center><button type="button" class="btn btn-default" onclick="staffReportByDate()">Search</button></center>
+            </form>
+          </div>
+          <div class="col-md-6">
+            <center><h4>Report by Staff</h4></center>
+            <form action="">
+              <div class="form-group">
+                <label for="Student Dept">Select Department:</label>
+                <select class="form-control" id="StaffDept" onchange="showStaff(this.value)">
+                  <option value="">Select a Department</option>
+                  <option value="IT">B.E. IT</option>
+                  <option value="CSE">B.E. CSE</option>
+                  <option value="ECE">B.E. ECE</option>
+                </select>
+                <label for="Student Name">Select Student:</label>
+                <select class="form-control" id="StaffName">
+                  
+                </select>
+              </div>
+              <center><button type="button" class="btn btn-default" onclick="staffReportByName()">Search</button></center>
+            </form>  
+          </div>
+        </div>  
+        <br><center><button type="button" id="download" class="btn btn-default" onclick="staffReport()">Download Report</button></center><br>
+        <div class="container" id="staffReport"></div>
+      </div>
+      <!-- Staff Report Ends -->
+
+    </div>
+
+    <!-- Main Block Ends -->
 
     <script>
-      function openEvent(evt, action) {
-    // Declare all variables
-    var i, tabcontent, tablinks;
+      $(document).ready(function(){
+          $('[data-toggle="tooltip"]').tooltip();   
+      });
+      
+      function openPage(pageName,elmnt) {
+          var i, tabcontent, tablinks;
+          tabcontent = document.getElementsByClassName("tabcontent");
+          for (i = 0; i < tabcontent.length; i++) {
+              tabcontent[i].style.display = "none";
+          }
+          tablinks = document.getElementsByClassName("tablink");
+          for (i = 0; i < tablinks.length; i++) {
+              tablinks[i].style.backgroundColor = "";
+          }
+          document.getElementById(pageName).style.display = "block";
+          elmnt.style.backgroundColor = '#66a3ff';
 
-    // Get all elements with class="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-    }
+      }
 
-    // Get all elements with class="tablinks" and remove the class "active"
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
+      document.getElementById("defaultOpen").click();
 
-    // Show the current tab, and add an "active" class to the link that opened the tab
-    document.getElementById(action).style.display = "block";
-    evt.currentTarget.className += " active";
-}
+      function showStudent(str) {
+        if (str=="") {
+          document.getElementById("StudName").innerHTML="";
+          return;
+        }
+        if (window.XMLHttpRequest) {
+          xmlhttp=new XMLHttpRequest();
+        }else {
+          xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+        }
 
-// Get the element with id="defaultOpen" and click on it
-document.getElementById("defaultOpen").click();
-</script>
-    </body>
+        xmlhttp.onreadystatechange=function(){
+          if (this.readyState==4 && this.status==200){
+            document.getElementById("StudName").innerHTML=this.responseText;
+          }
+        }
+        xmlhttp.open("GET","Report/getNameByDept.php?dept="+str+"&role=Student",true);
+        xmlhttp.send();
+      }
+
+      function showStaff(str) {
+        if (str=="") {
+          document.getElementById("StaffName").innerHTML="";
+          return;
+        }
+        if (window.XMLHttpRequest) {
+          xmlhttp=new XMLHttpRequest();
+        }else {
+          xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+        }
+
+        xmlhttp.onreadystatechange=function(){
+          if (this.readyState==4 && this.status==200){
+            document.getElementById("StaffName").innerHTML=this.responseText;
+          }
+        }
+        xmlhttp.open("GET","Report/getNameByDept.php?dept="+str+"&role=allStaff",true);
+        xmlhttp.send();
+      }
+
+      // Report Script
+      function showReportByDate() {
+        var from = document.getElementById("fromDate").value;
+        var to = document.getElementById("toDate").value;
+        var id = document.getElementById("staffId").value;
+
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("studentReport").innerHTML = this.responseText;
+            }
+        };
+        xmlhttp.open("GET", "Report/StudentReportByPeriod.php?from=" + from+"&to=" + to+"&id="+id+"&Role=Principal", true);
+        xmlhttp.send();
+      }
+
+      function showReportByName() {
+        var studID = document.getElementById("StudName").value;
+
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("studentReport").innerHTML = this.responseText;
+            }
+        };
+        xmlhttp.open("GET", "Report/StudentReportByID.php?id=" + studID, true);
+        xmlhttp.send();
+      }
+
+      function staffReportByDate() {
+        var from = document.getElementById("staffFromDate").value;
+        var to = document.getElementById("staffToDate").value;
+        var id = document.getElementById("staffId").value;
+
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("staffReport").innerHTML = this.responseText;
+            }
+        };
+        xmlhttp.open("GET", "Report/StaffReportByPeriod.php?from=" + from+"&to=" + to+"&id="+id+"&Role=Principal", true);
+        xmlhttp.send();
+      }
+
+      function staffReportByName() {
+        var staffID = document.getElementById("StaffName").value;
+
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("staffReport").innerHTML = this.responseText;
+            }
+        };
+        xmlhttp.open("GET", "Report/StaffReportByID.php?id=" + staffID, true);
+        xmlhttp.send();
+      }
+
+      function updatePassword() {
+        var id = '<?php echo $_SESSION['sess_user_id']; ?>';
+        var password = document.getElementById("pwd1").value;
+
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("passwordStatus").innerHTML = this.responseText;
+            }
+        };
+        xmlhttp.open("GET", "Controllers/password.php?id="+id+"&pass="+password, true);
+        xmlhttp.send();
+      }
+
+      StudentLeave();
+
+      setInterval(function(){  
+        StudentLeave();
+        StaffLeave();
+        HODLeave();
+        Notification();
+      }, 10000);
+
+      function StudentLeave(){
+        $.post('Controllers/Leave.php?action=getStudentLeave&user=Principal', function(response){
+          $('#stud_leave').html(response);
+        });
+      }
+
+      function StudentLeaveApprove(leaveID) {
+        var leaveid = leaveID;
+        $.post('Controllers/Leave.php?action=updateStudentLeave&user=Principal&lvlstatus=Approved&leaveid='+leaveid, function(response){
+          $('#stud_leave_status').html(response);
+        });
+      }
+
+      function StudentLeaveReject(leaveID) {
+        var leaveid = leaveID;
+        $.post('Controllers/Leave.php?action=updateStudentLeave&user=Principal&lvlstatus=Rejected&leaveid='+leaveid, function(response){
+        });
+      }
+
+      StaffLeave();
+
+      function StaffLeave(){
+        $.post('Controllers/Leave.php?action=getStaffLeave&user=Principal', function(response){
+          $('#staffleave').html(response);
+        });
+      }
+
+      function StaffLeaveApprove(leaveID) {
+        var leaveid = leaveID;
+        $.post('Controllers/Leave.php?action=updateStaffLeave&user=Principal&lvlstatus=Approved&leaveid='+leaveid, function(response){
+          $('#stud_leave_status').html(response);
+        });
+      }
+
+      function StaffLeaveReject(leaveID) {
+        var leaveid = leaveID;
+        $.post('Controllers/Leave.php?action=updateStaffLeave&user=Principal&lvlstatus=Rejected&leaveid='+leaveid, function(response){
+        });
+      }
+
+      HODLeave();
+
+      function HODLeave(){
+        $.post('Controllers/Leave.php?action=getHODLeave', function(response){
+          $('#showHodleave').html(response);
+        });
+      }
+
+      Notification();
+
+      function Notification() {
+        $.post('Controllers/Leave.php?action=getNotification&user=Principal', function(response){
+          $('#notification').html(response);
+        });
+      }
+
+
+    </script>
+
+  </body>
 </html>
+
+

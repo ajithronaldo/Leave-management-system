@@ -25,7 +25,8 @@
                     	<?php 
 	                        $errors = array(
 	                            1=>"Invalid user name or password, Try again",
-	                            2=>"Please login to access this area"
+	                            2=>"Please login to access this area",
+                                3=>"You Login access has been Removed"
 	                        );
 
 	                        $error_id = isset($_GET['err']) ? (int)$_GET['err'] : 0;
@@ -33,6 +34,8 @@
 	                        if ($error_id == 1) {
                                 echo '<p class="text_danger">'.$errors[$error_id].'</p>';
                             }elseif ($error_id == 2) {
+                                echo '<p class="text_danger">'.$errors[$error_id].'</p>';
+                            }elseif ($error_id == 3) {
                                 echo '<p class="text_danger">'.$errors[$error_id].'</p>';
                             }
 	                    ?>  

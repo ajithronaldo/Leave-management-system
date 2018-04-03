@@ -6,112 +6,121 @@
     if(!isset($_SESSION['sess_username'])){
       header('Location: index.php?err=2');
     }
-    if($role!="Student"){
+    if($_SESSION['sess_userrole'] != "Student"){
         header('Location: index.php?err=2');
     }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CSE-Hackathon</title>
+    <title>Leave Management System</title>
 
-    <!-- Bootstrap -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+
     <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/userStyles.css">
 
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+
     <style>
-/* Style the tab */
-div.tab {
-    overflow: hidden;
-    border: 1px solid #ccc;
-    background-color: #f1f1f1;
-}
-
-/* Style the links inside the tab */
-div.tab a {
-    float: left;
-    display: block;
-    color: black;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-    transition: 0.3s;
-    font-size: 17px;
-}
-
-/* Change background color of links on hover */
-div.tab a:hover {
-    background-color: #ddd;
-}
-
-/* Create an active/current tablink class */
-div.tab a:focus, .active {
-    background-color: #ccc;
-}
-
-/* Style the tab content */
-.tabcontent {
-    display: none;
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-top: none;
-}
-</style>
+      .tablink {
+         width: 33%;
+      }
+      .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
+        border-top: none;
+      }
+    </style>
   </head>
   <body>
     
-    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation" style="background: #66A3FF; font-weight: bold; font-size: 16px;">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="sr-only">My Campus My Idea</span>
+            <span class="sr-only">Leave Management System</span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#"><I>CSE</I></a>
+          <a class="navbar-brand" href="#"><I>Leave Management System</I></a>
         </div>
 
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="#"><?php echo $_SESSION['sess_username'];?></a></li>
+            <li><button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#passwordModal"><?php echo $_SESSION['sess_username'];?></button></li>
             <li><a href="logout.php">Logout</a></li>
           </ul>
         </div>
       </div>
     </div>
-    <br><br><br><br>
-    <div class="container homepage">
+
+    <!-- Password Modal Starts -->
+    
+    <div class="modal fade" id="passwordModal" role="dialog">
+      <div class="modal-dialog">
+      
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Change Password</h4>
+          </div>
+          <div class="modal-body">
+            <form action="">
+              <div class="form-group">
+                <label for="email">Password:</label>
+                <input type="password" class="form-control" id="pwd1">
+              </div>
+              <div class="form-group">
+                <label for="pwd">Conform Password:</label>
+                <input type="password" class="form-control" id="pwd2">
+              </div>
+              <button type="button" class="col-md-offset-4 col-md-4 btn btn-default" onclick="updatePassword()">Update</button>
+            </form>
+            <br><br>
+            <div class="alert alert-info">
+              <strong>Info!</strong> <div id = "passwordStatus"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  
+    <!-- Password Modal Ends -->
+
+    <!-- Main Block Starts -->
+
+    <div class="container-fluid">
       <div class="tab">
-        <a href="javascript:void(0)" class="tablinks" onclick="openEvent(event, 'Apply_Leave')">Apply Leave</a>
-        <a href="javascript:void(0)" class="tablinks" onclick="openEvent(event, 'History')">History</a>
-        <a href="javascript:void(0)" class="tablinks" onclick="openEvent(event, 'Status')">Status</a>
+      <button class="tablink" onclick="openPage('apply_leave', this)"  id="defaultOpen">Apply Leave</button>
+      <button class="tablink" onclick="openPage('history', this)" >History</button>
+      <button class="tablink" onclick="openPage('status', this)">Status</button>
       </div>
 
-      <div id="Apply_Leave" class="tabcontent">
-      
-        <h3>Apply Leave</h3>
+      <!-- Leave Form Starts -->
+      <div id="apply_leave" class="tabcontent">
+        <h3><center>Leave Request Form</center></h3>
         <form method = "post" action = "">
-          <table class="table table-bordered table-responsive">
-          <center><tr>Leave Form</tr></center>
-            <br>
+          <table class="table" style="border-top: none;">
+            <tr>
                <td>Roll No.</td> 
                <td><?php echo $_SESSION['sess_user_id'];?></td>
-               <td></td><td></td>
                <td>Date :</td>
                <td><?php echo date("d/m/Y") ?></td>
-
             </tr>
-            
+  
             <tr>
                <td>Name:</td>
                <td><?php echo $_SESSION['sess_username'];?></td>
@@ -119,199 +128,221 @@ div.tab a:focus, .active {
             
             <tr>
                <td>From :</td>
-               <td><input type="date" placeholder="dd/mm/yyyy" name="fromDate"></td>
+               <td><input type="date" placeholder="dd/mm/yyyy" name="fromDate" id="fromDate"></td>
             </tr>
 
             <tr>
                <td>To :</td>
-               <td><input type="date" placeholder="dd/mm/yyyy" name="toDate"></td>
-               <td></td>
-               <td>FN :</td>
-               <td><input type="checkbox" name="FN"></td>
-               <td>AN :</td>
-               <td><input type="checkbox" name="AN"></td>
+               <td><input type="date" placeholder="dd/mm/yyyy" name="toDate" id="toDate"></td>            
+               <td>FN :&emsp;<input type="checkbox" name="FN"></td>
+               <td>AN :&emsp;<input type="checkbox" name="AN"></td>
             </tr>
             
             <tr>
                <td>Reason For leave:</td>
-               <td><textarea name = "Reason" placeholder = "Reason" rows = "4" cols = "40"></textarea></td>
+               <td><textarea name = "Reason" placeholder = "Reason" rows = "4" cols = "40" id="Reason"></textarea></td>
             </tr>
-            </table>
-              <center><input type = "submit" name = "submit" value = "submit"> </center>         
-      </form>
-      
-      </div>
+          </table>
+          <center><input type = "submit" name = "submit" id="subBtn" value = "submit"> </center>         
+        </form>
 
-      <div id="History" class="tabcontent">
-        <h3>History</h3>
         <?php
-require "database-config.php";
+          require 'config/Connection.php';
+          $id = $_SESSION['sess_user_id'];
+          $name = $_SESSION['sess_username'];
 
-$id = $_SESSION['sess_user_id'];
+          if(isset($_POST["submit"])){
+            extract($_POST);
+            
+            $from = $_POST['fromDate'];
+            $to = $_POST['toDate'];
+            $Reason = $_POST['Reason'];
 
-echo $id;
+            echo '<script>console.log('.$from.');</script>';
 
 
+            $dept="";
+            $type="";
 
-  $gethist = 'SELECT * FROM studentleave where StudentID = :id ORDER BY AppliedOn DESC';
+            // Get Student Department
+            $getDeptQuery = 'SELECT * FROM studentdetails WHERE StudentID = :id';
+            $getDeptResult = $dbh->prepare($getDeptQuery);
+            $getDeptResult->execute(array(':id' => $id));
+            if($getDeptResult->rowCount() > 0){
+              $row = $getDeptResult->fetch(PDO::FETCH_ASSOC);
+              $dept = $row['StudentDept'];
+              $type = $row['student_type'];
+              $gen = $row['Gender'];
+            }
+            
+            // Insert into Student Leave Record
+            $leaveInsertQuery='INSERT into studentleave (StudentID,StudentName,StudentDept,Gender,student_type,FromDate,ToDate,Reason) values (:id,:name,:dept,:gen,:type,:fro,:to,:Reason)';
+            $leaveInsertResult = $dbh->prepare($leaveInsertQuery);
+            $leaveInsertResult->execute(array(':id' => $id, ':name' => $name, ':dept' => $dept, ':gen' => $gen, ':type' => $type, ':fro' => $from, ':to' => $to, ':Reason' => $Reason ));
 
-  $query = $dbh->prepare($gethist);
+            
+          }
+          
+        ?>
 
-  $query->execute(array(':id' => $id));
-
-  if($query->rowCount() > 0){
-
-    print "<table border = 1 cellspacing = 5px cellpadding = 5% ; align = center>
-    <tr> <th> Student ID </th> <th> Student Dept </th> <th> From Date </th> <th>To Date</th> <th> Reason</th> <th> Applied On</th> <th>Staff Approved </th><th>Hod Approved </th> <th>Principal</th>     </tr>";
-
-    
-    while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-        print "<tr>";
-        print "<td> ". $row["StudentID"] . "</td>";
-        print "<td> ". $row["StudentDept"]. "</td>";
-        print "<td> ". $row["FromDate"]. "</td>";
-        print "<td> ". $row["ToDate"]. "</td>";
-        print "<td> ". $row["Reason"]. "</td>";
-        print "<td> ". $row["AppliedOn"]. "</td>";
-        print "<td> ". $row["Mentor_Approval"]. "</td>";
-        print "<td> ". $row["Hod_Approval"]. "</td>";
-        print "<td> ". $row["Principal_Approval"]. "</td>"; 
-        print "</tr>";
-      }
-      print "</table>";
-    }else{
-        print "No Record Found..!!!! ";
-  }
-   ?>
       </div>
+      <!-- Leave Form Ends -->
 
-      <div id="Status" class="tabcontent">
-        <h3>Status</h3>
+      <!-- History Starts -->
+      <div id="history" class="tabcontent">
+        <center><h3>Your Leave History</h3></center>
         <?php
-require "database-config.php";
+          require "config/Connection.php";
 
-$id = $_SESSION['sess_user_id'];
+          $id = $_SESSION['sess_user_id'];
+          
+          $historyQuery = 'SELECT * FROM studentleave where StudentID = :id ORDER BY AppliedOn DESC';
+          $historyResult = $dbh->prepare($historyQuery);
+          $historyResult->execute(array(':id' => $id));
+          if($historyResult->rowCount() > 0){
 
-echo $id;
-
-
-
-  $gethist = 'SELECT * FROM studentleave where StudentID = :id ORDER BY AppliedOn DESC LIMIT 1';
-
-  $query = $dbh->prepare($gethist);
-
-  $query->execute(array(':id' => $id));
-
-  if($query->rowCount() > 0){
-
-    print "<table border = 1 cellspacing = 5px cellpadding = 5% ; align = center>
-    <tr> <th> Student ID </th> <th> Student Dept </th> <th> From Date </th> <th>To Date</th> <th> Reason</th> <th> Applied On</th> <th>Staff Approved </th><th>Hod Approved </th> <th>Principal</th>     </tr>";
-
-    
-    while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-        print "<tr>";
-        print "<td> ". $row["StudentID"] . "</td>";
-        print "<td> ". $row["StudentDept"]. "</td>";
-        print "<td> ". $row["FromDate"]. "</td>";
-        print "<td> ". $row["ToDate"]. "</td>";
-        print "<td> ". $row["Reason"]. "</td>";
-        print "<td> ". $row["AppliedOn"]. "</td>";
-        print "<td> ". $row["Mentor_Approval"]. "</td>";
-        print "<td> ". $row["Hod_Approval"]. "</td>";
-        print "<td> ". $row["Principal_Approval"]. "</td>"; 
-        print "</tr>";
-      }
-      print "</table>";
-    }else{
-        print "No Record Found..!!!! ";
-  }
-   ?>
+            print "<table class='table table-striped'>
+            <thead>
+              <tr>
+                <th>S.No.</th>
+                <th>Student ID</th>
+                <th>From Date</th>
+                <th>To Date</th>
+                <th>Reason</th>
+                <th>Applied On</th>
+                <th>Staff Approval</th>
+                <th>HOD Approval</th>
+                <th>Principal Approval</th>
+              </tr>
+            </thead>
+            <tbody>";
+            $serial = 1; 
+            
+            while($row = $historyResult->fetch(PDO::FETCH_ASSOC)) {
+                print "<tr>";
+                print "<td> ". $serial . "</td>";
+                print "<td> ". $row["StudentID"] . "</td>";
+                print "<td> ". $row["FromDate"]. "</td>";
+                print "<td> ". $row["ToDate"]. "</td>";
+                print "<td> ". $row["Reason"]. "</td>";
+                print "<td> ". $row["AppliedOn"]. "</td>";
+                print "<td> ". $row["Mentor_Approval"]. "</td>";
+                print "<td> ". $row["Hod_Approval"]. "</td>";
+                print "<td> ". $row["Principal_Approval"]. "</td>"; 
+                print "</tr>";
+                $serial = $serial + 1;
+            }
+            print "</tbody>
+                  </table>";
+          }else{
+            print "No Record Found..!!!! ";
+          }
+        ?>
       </div>
-      
-      </div>
+      <!-- History Ends -->
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="js/bootstrap.min.js"></script>
+      <!-- Status Starts -->
+      <div id="status" class="tabcontent">
+        <center><h3>Status About Your Recent Leave Request</h3></center>
+        <?php
+          require "config/Connection.php";
+
+          $id = $_SESSION['sess_user_id'];
+          
+          $statusQuery = 'SELECT * FROM studentleave where StudentID = :id ORDER BY AppliedOn DESC LIMIT 1';
+          $statusResult = $dbh->prepare($statusQuery);
+          $statusResult->execute(array(':id' => $id));
+          if($statusResult->rowCount() > 0){
+
+            print "<table class='table table-bordered'>
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>From Date</th>
+                <th>To Date</th>
+                <th>Reason</th>
+                <th>Applied On</th>
+                <th>Staff Approval</th>
+                <th>HOD Approval</th>
+                <th>Principal Approval</th>
+              </tr>
+            </thead>
+            <tbody>";
+            
+            while($row = $statusResult->fetch(PDO::FETCH_ASSOC)) {
+                print "<tr class='info'>";
+                print "<td> ". $row["StudentID"] . "</td>";
+                print "<td> ". $row["FromDate"]. "</td>";
+                print "<td> ". $row["ToDate"]. "</td>";
+                print "<td> ". $row["Reason"]. "</td>";
+                print "<td> ". $row["AppliedOn"]. "</td>";
+                print "<td> ". $row["Mentor_Approval"]. "</td>";
+                print "<td> ". $row["Hod_Approval"]. "</td>";
+                print "<td> ". $row["Principal_Approval"]. "</td>"; 
+                print "</tr>";
+            }
+            print "</tbody>
+                  </table>";
+          }else{
+            print "No Record Found..!!!! ";
+          }
+        ?>
+      </div>
+      <!-- Status Ends -->
+
+    </div>
+
+    <!-- Main Block Ends -->
 
     <script>
-      function openEvent(evt, action) {
-    // Declare all variables
-    var i, tabcontent, tablinks;
+      function openPage(pageName,elmnt) {
+          var i, tabcontent, tablinks;
+          tabcontent = document.getElementsByClassName("tabcontent");
+          for (i = 0; i < tabcontent.length; i++) {
+              tabcontent[i].style.display = "none";
+          }
+          tablinks = document.getElementsByClassName("tablink");
+          for (i = 0; i < tablinks.length; i++) {
+              tablinks[i].style.backgroundColor = "";
+          }
+          document.getElementById(pageName).style.display = "block";
+          elmnt.style.backgroundColor = '#66a3ff';
 
-    // Get all elements with class="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-    }
+      }
 
-    // Get all elements with class="tablinks" and remove the class "active"
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
+      document.getElementById("defaultOpen").click();
 
-    // Show the current tab, and add an "active" class to the link that opened the tab
-    document.getElementById(action).style.display = "block";
-    evt.currentTarget.className += " active";
-}
+      var dateToday = new Date();
+      var dates = $("#from, #to").datepicker({
+          defaultDate: "+1w",
+          changeMonth: true,
+          numberOfMonths: 1,
+          minDate: dateToday,
+          onSelect: function(selectedDate) {
+              var option = this.id == "from" ? "minDate" : "maxDate",
+                  instance = $(this).data("datepicker"),
+                  date = $.datepicker.parseDate(instance.settings.dateFormat || $.datepicker._defaults.dateFormat, selectedDate, instance.settings);
+                  
+              dates.not(this).datepicker("option", option, date);
+          }
+      });
 
-// Get the element with id="defaultOpen" and click on it
-document.getElementById("defaultOpen").click();
-</script>
+      function updatePassword() {
+        var id = '<?php echo $_SESSION['sess_user_id']; ?>';
+        var password = document.getElementById("pwd1").value;
 
-</body>
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("passwordStatus").innerHTML = this.responseText;
+            }
+        };
+        xmlhttp.open("GET", "Controllers/password.php?id="+id+"&pass="+password, true);
+        xmlhttp.send();
+      }
+    </script>
+
+  </body>
 </html>
 
-<?php
-require 'database-config.php';
-    $id = $_SESSION['sess_user_id'];
-    $name = $_SESSION['sess_username'];
 
-
-  if(isset($_POST["submit"])){
-  extract($_POST);
-  
-  $from = $_POST['fromDate'];
-  $to = $_POST['toDate'];
-  $Reason = $_POST['Reason'];
-
-  $dept="";
-/*$getdept = "SELECT StudentDept FROM studentdetails WHERE StudentID = $id ";
-        $result = mysqli_query($dbh,$getdept);
-
-        if(mysqli_num_rows($result) > 0){
-          while($row = mysqli_fetch_assoc($result)){
-            $dept = $row["StudentDept"];
-          }
-        } */
-
-
-        $getdept = 'SELECT * FROM studentdetails WHERE StudentID = :id';
-
-  $query = $dbh->prepare($getdept);
-
-  $query->execute(array(':id' => $id));
-
-  if($query->rowCount() > 0){
-
-    $row = $query->fetch(PDO::FETCH_ASSOC);
-
-    
-    $dept = $row['StudentDept'];
-  }
-  //$ins = 'INSERT INTO `studentleave`(`StudentID`, `StudentName`, `StudentDept`, `FromDate`, `ToDate`, `Reason`) VALUES ($id,$name,$dept,$from,$to,$Reason)';
-  $ins='INSERT into studentleave (StudentID,StudentName,StudentDept,FromDate,ToDate,Reason) values (:id,:name,:dept,:from,:to,:Reason)';
-  $query = $dbh->prepare($ins);
-
-  $query->execute(array(':id' => $id, ':name' => $name, ':dept' => $dept, ':from' => $from, ':to' => $to, ':Reason' => $Reason ));
-
-    /*if(mysqli_query($dbh, $ins)){
-              echo "Leave Applied SuccessFully..!!";
-          }else{
-              echo "ERROR: Could not able to execute $ins. " . mysqli_error($dbh);
-         }*/
-  }
-    
-?>
